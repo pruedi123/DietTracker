@@ -115,6 +115,31 @@ if st.button("Save Entry", type="primary", use_container_width=True):
     st.success(f"Saved entry for {selected_date}!")
     st.rerun()
 
+# --- Export / Import ---
+st.divider()
+exp_col, imp_col = st.columns(2)
+
+with exp_col:
+    if data:
+        st.download_button(
+            "Download Data (JSON)",
+            data=json.dumps(data, indent=2),
+            file_name="diet_tracker_data.json",
+            mime="application/json",
+        )
+
+with imp_col:
+    uploaded = st.file_uploader("Upload Data (JSON)", type=["json"])
+    if uploaded is not None:
+        try:
+            imported = json.load(uploaded)
+            data.update(imported)
+            save_data(data)
+            st.success(f"Imported {len(imported)} entries!")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Invalid JSON file: {e}")
+
 # --- Trend Charts ---
 if data:
     st.divider()
@@ -143,7 +168,7 @@ if data:
         weight_df = df.reset_index()
         line = alt.Chart(weight_df).mark_line(point=True).encode(
             x="date:T",
-            y=alt.Y("weight:Q", scale=alt.Scale(domainMin=170)),
+            y=alt.Y("weight:Q", scale=alt.Scale(domainMin=160)),
         )
         target_rule = alt.Chart(pd.DataFrame({"weight": [target_weight]})).mark_rule(color="blue", strokeDash=[4, 4]).encode(
             y="weight:Q",
