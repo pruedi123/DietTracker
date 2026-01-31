@@ -129,16 +129,19 @@ with exp_col:
         )
 
 with imp_col:
-    uploaded = st.file_uploader("Upload Data (JSON)", type=["json"])
-    if uploaded is not None:
+    uploaded = st.file_uploader("Upload Data (JSON)", type=["json"], key="json_uploader")
+    if uploaded is not None and not st.session_state.get("imported"):
         try:
             imported = json.load(uploaded)
             data.update(imported)
             save_data(data)
+            st.session_state["imported"] = True
             st.success(f"Imported {len(imported)} entries!")
             st.rerun()
         except Exception as e:
             st.error(f"Invalid JSON file: {e}")
+    if uploaded is None:
+        st.session_state["imported"] = False
 
 with reset_col:
     if data:
