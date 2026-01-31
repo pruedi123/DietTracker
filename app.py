@@ -204,57 +204,61 @@ if data:
         df = df[(df["date"].dt.year == year) & (df["date"].dt.month == month)]
     df = df.set_index("date")
 
-    col1, col2, col3 = st.columns(3)
+    if df.empty:
+        st.info("No data for this period.")
+    else:
 
-    with col1:
-        st.markdown("**Weight (lbs)**")
-        target_weight = st.number_input("Target Weight (lbs)", min_value=50.0, max_value=500.0, value=180.0, step=0.5, format="%.1f", key="target_weight")
-        import altair as alt
-        weight_df = df.reset_index()
-        line = alt.Chart(weight_df).mark_line(point=True).encode(
-            x="date:T",
-            y=alt.Y("weight:Q", scale=alt.Scale(domainMin=160)),
-        )
-        target_rule = alt.Chart(pd.DataFrame({"weight": [target_weight]})).mark_rule(color="blue", strokeDash=[4, 4]).encode(
-            y="weight:Q",
-        )
-        mid_date = weight_df["date"].iloc[len(weight_df) // 2] if len(weight_df) > 0 else weight_df["date"].iloc[0]
-        target_label = alt.Chart(pd.DataFrame({"date": [mid_date], "weight": [target_weight], "label": ["Target Weight"]})).mark_text(
-            align="center", dy=-10, color="blue", fontWeight="bold"
-        ).encode(
-            x="date:T",
-            y="weight:Q",
-            text="label:N",
-        )
-        st.altair_chart(line + target_rule + target_label, use_container_width=True)
+        col1, col2, col3 = st.columns(3)
 
-    with col2:
-        st.markdown("**Alcoholic Drinks**")
-        drinks_df = df.reset_index()
-        drinks_df["drink_level"] = drinks_df["drinks"].apply(
-            lambda d: "green" if d == 0 else ("orange" if d <= 2 else "red")
-        )
-        drinks_chart = alt.Chart(drinks_df).mark_point(size=80, filled=True).encode(
-            x="date:T",
-            y=alt.Y("drinks:Q", title="drinks", scale=alt.Scale(domain=[0, 5])),
-            color=alt.Color("drink_level:N", scale=alt.Scale(
-                domain=["green", "orange", "red"],
-                range=["green", "orange", "red"],
-            ), legend=None),
-        )
-        st.altair_chart(drinks_chart, use_container_width=True)
+        with col1:
+            st.markdown("**Weight (lbs)**")
+            target_weight = st.number_input("Target Weight (lbs)", min_value=50.0, max_value=500.0, value=180.0, step=0.5, format="%.1f", key="target_weight")
+            import altair as alt
+            weight_df = df.reset_index()
+            line = alt.Chart(weight_df).mark_line(point=True).encode(
+                x="date:T",
+                y=alt.Y("weight:Q", scale=alt.Scale(domainMin=160)),
+            )
+            target_rule = alt.Chart(pd.DataFrame({"weight": [target_weight]})).mark_rule(color="blue", strokeDash=[4, 4]).encode(
+                y="weight:Q",
+            )
+            mid_date = weight_df["date"].iloc[len(weight_df) // 2]
+            target_label = alt.Chart(pd.DataFrame({"date": [mid_date], "weight": [target_weight], "label": ["Target Weight"]})).mark_text(
+                align="center", dy=-10, color="blue", fontWeight="bold"
+            ).encode(
+                x="date:T",
+                y="weight:Q",
+                text="label:N",
+            )
+            st.altair_chart(line + target_rule + target_label, use_container_width=True)
 
-    with col3:
-        st.markdown("**Carbs ≤ 20g**")
-        carb_df = df.reset_index()[["date", "carbs_ok"]].copy()
-        carb_df["y"] = 0.5
-        carb_df["status"] = carb_df["carbs_ok"].map({True: "green", False: "red"})
-        carb_chart = alt.Chart(carb_df).mark_point(size=80, filled=True).encode(
-            x="date:T",
-            y=alt.Y("y:Q", scale=alt.Scale(domain=[0, 1]), axis=None),
-            color=alt.Color("status:N", scale=alt.Scale(
-                domain=["green", "red"],
-                range=["green", "red"],
-            ), legend=None),
-        )
-        st.altair_chart(carb_chart, use_container_width=True)
+        with col2:
+            st.markdown("**Alcoholic Drinks**")
+            drinks_df = df.reset_index()
+            drinks_df["drink_level"] = drinks_df["drinks"].apply(
+                lambda d: "green" if d == 0 else ("orange" if d <= 2 else "red")
+            )
+            drinks_chart = alt.Chart(drinks_df).mark_point(size=80, filled=True).encode(
+                x="date:T",
+                y=alt.Y("drinks:Q", title="drinks", scale=alt.Scale(domain=[0, 5])),
+                color=alt.Color("drink_level:N", scale=alt.Scale(
+                    domain=["green", "orange", "red"],
+                    range=["green", "orange", "red"],
+                ), legend=None),
+            )
+            st.altair_chart(drinks_chart, use_container_width=True)
+
+        with col3:
+            st.markdown("**Carbs ≤ 20g**")
+            carb_df = df.reset_index()[["date", "carbs_ok"]].copy()
+            carb_df["y"] = 0.5
+            carb_df["status"] = carb_df["carbs_ok"].map({True: "green", False: "red"})
+            carb_chart = alt.Chart(carb_df).mark_point(size=80, filled=True).encode(
+                x="date:T",
+                y=alt.Y("y:Q", scale=alt.Scale(domain=[0, 1]), axis=None),
+                color=alt.Color("status:N", scale=alt.Scale(
+                    domain=["green", "red"],
+                    range=["green", "red"],
+                ), legend=None),
+            )
+            st.altair_chart(carb_chart, use_container_width=True)
