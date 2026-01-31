@@ -186,6 +186,7 @@ with reset_col:
 if data:
     st.divider()
     st.subheader("Trends")
+    chart_range = st.radio("Show:", ["Current Month", "All Time"], horizontal=True, key="chart_range")
 
     df = pd.DataFrame(
         [
@@ -199,6 +200,8 @@ if data:
         ]
     )
     df["date"] = pd.to_datetime(df["date"])
+    if chart_range == "Current Month":
+        df = df[(df["date"].dt.year == year) & (df["date"].dt.month == month)]
     df = df.set_index("date")
 
     col1, col2, col3 = st.columns(3)
