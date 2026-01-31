@@ -115,45 +115,6 @@ if st.button("Save Entry", type="primary", use_container_width=True):
     st.success(f"Saved entry for {selected_date}!")
     st.rerun()
 
-# --- Export / Import ---
-st.divider()
-exp_col, imp_col, reset_col = st.columns(3)
-
-with exp_col:
-    if data:
-        st.download_button(
-            "Download Data (JSON)",
-            data=json.dumps(data, indent=2),
-            file_name="diet_tracker_data.json",
-            mime="application/json",
-        )
-
-with imp_col:
-    uploaded = st.file_uploader("Upload Data (JSON)", type=["json"])
-    if uploaded is not None:
-        try:
-            imported = json.load(uploaded)
-            data.update(imported)
-            save_data(data)
-            st.success(f"Imported {len(imported)} entries!")
-            st.rerun()
-        except Exception as e:
-            st.error(f"Invalid JSON file: {e}")
-
-with reset_col:
-    if data:
-        if st.button("Reset All Data", type="secondary"):
-            st.session_state["confirm_reset"] = True
-        if st.session_state.get("confirm_reset"):
-            st.warning("This will delete all entries. Are you sure?")
-            if st.button("Yes, reset", type="primary"):
-                save_data({})
-                st.session_state["confirm_reset"] = False
-                st.rerun()
-            if st.button("Cancel"):
-                st.session_state["confirm_reset"] = False
-                st.rerun()
-
 # --- Trend Charts ---
 if data:
     st.divider()
@@ -177,53 +138,18 @@ if data:
 
     with col1:
         st.markdown("**Weight (lbs)**")
-        target_weight = st.number_input("Target Weight (lbs)", min_value=50.0, max_value=500.0, value=175.0, step=0.5, format="%.1f", key="target_weight")
         import altair as alt
-        weight_df = df.reset_index()
-        line = alt.Chart(weight_df).mark_line(point=True).encode(
+        chart = alt.Chart(df.reset_index()).mark_line(point=True).encode(
             x="date:T",
             y=alt.Y("weight:Q", scale=alt.Scale(domainMin=160)),
         )
-        target_rule = alt.Chart(pd.DataFrame({"weight": [target_weight]})).mark_rule(color="blue", strokeDash=[4, 4]).encode(
-            y="weight:Q",
-        )
-        mid_date = weight_df["date"].iloc[len(weight_df) // 2] if len(weight_df) > 0 else weight_df["date"].iloc[0]
-        target_label = alt.Chart(pd.DataFrame({"date": [mid_date], "weight": [target_weight], "label": ["Target Weight"]})).mark_text(
-            align="center", dy=-10, color="blue", fontWeight="bold"
-        ).encode(
-            x="date:T",
-            y="weight:Q",
-            text="label:N",
-        )
-        st.altair_chart(line + target_rule + target_label, use_container_width=True)
+        st.altair_chart(chart, use_container_width=True)
 
     with col2:
         st.markdown("**Alcoholic Drinks**")
-        drinks_df = df.reset_index()
-        drinks_df["drink_level"] = drinks_df["drinks"].apply(
-            lambda d: "green" if d == 0 else ("orange" if d <= 2 else "red")
-        )
-        drinks_chart = alt.Chart(drinks_df).mark_point(size=80, filled=True).encode(
-            x="date:T",
-            y=alt.Y("drinks:Q", title="drinks", scale=alt.Scale(domain=[0, 5])),
-            color=alt.Color("drink_level:N", scale=alt.Scale(
-                domain=["green", "orange", "red"],
-                range=["green", "orange", "red"],
-            ), legend=None),
-        )
-        st.altair_chart(drinks_chart, use_container_width=True)
+        st.bar_chart(df["drinks"])
 
     with col3:
-        st.markdown("**Carbs ≤ 20g**")
-        carb_df = df.reset_index()[["date", "carbs_ok"]].copy()
-        carb_df["y"] = 0.5
-        carb_df["status"] = carb_df["carbs_ok"].map({True: "green", False: "red"})
-        carb_chart = alt.Chart(carb_df).mark_point(size=80, filled=True).encode(
-            x="date:T",
-            y=alt.Y("y:Q", scale=alt.Scale(domain=[0, 1]), axis=None),
-            color=alt.Color("status:N", scale=alt.Scale(
-                domain=["green", "red"],
-                range=["green", "red"],
-            ), legend=None),
-        )
-        st.altair_chart(carb_chart, use_container_width=True)
+        st.markdown("**Carbs ≤ 20g Streak**")
+        carb_data = df["carbs_ok"].astype(int)
+        st.bar_chart(carb_data)
