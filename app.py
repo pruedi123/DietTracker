@@ -25,12 +25,37 @@ st.title("Diet & Weight Tracker")
 
 data = load_data()
 
-# --- Calendar for current month ---
+# --- Calendar month navigation ---
 today = date.today()
-year, month = today.year, today.month
+if "cal_year" not in st.session_state:
+    st.session_state["cal_year"] = today.year
+if "cal_month" not in st.session_state:
+    st.session_state["cal_month"] = today.month
+
+nav_left, nav_center, nav_right = st.columns([1, 3, 1])
+with nav_left:
+    if st.button("◀ Prev"):
+        if st.session_state["cal_month"] == 1:
+            st.session_state["cal_month"] = 12
+            st.session_state["cal_year"] -= 1
+        else:
+            st.session_state["cal_month"] -= 1
+        st.rerun()
+with nav_right:
+    if st.button("Next ▶"):
+        if st.session_state["cal_month"] == 12:
+            st.session_state["cal_month"] = 1
+            st.session_state["cal_year"] += 1
+        else:
+            st.session_state["cal_month"] += 1
+        st.rerun()
+
+year = st.session_state["cal_year"]
+month = st.session_state["cal_month"]
 month_name = calendar.month_name[month]
 
-st.subheader(f"{month_name} {year}")
+with nav_center:
+    st.subheader(f"{month_name} {year}")
 
 cal = calendar.Calendar(firstweekday=6)  # Sunday start
 weeks = cal.monthdayscalendar(year, month)
