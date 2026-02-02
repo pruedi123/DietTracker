@@ -68,5 +68,15 @@
     "carbs_ok": true,
     "weight": 196.6,
     "drinks": 2
+  },
+  "2026-02-01": {
+    "carbs_ok": true,
+    "weight": 196.8,
+    "drinks": 0
+  },
+  "2026-02-02": {
+    "carbs_ok": true,
+    "weight": 196.6,
+    "drinks": 0
   }
 }
