@@ -103,7 +103,7 @@ weight = st.number_input(
     "Weight (lbs)",
     min_value=50.0,
     max_value=500.0,
-    value=float(entry.get("weight", 196.0)),
+    value=float(entry.get("weight", 200.0)),
     step=0.1,
     format="%.1f",
     key="weight_input",
@@ -187,7 +187,7 @@ with reset_col:
 if data:
     st.divider()
     st.subheader("Trends")
-    chart_range = st.radio("Show:", ["All Time", "Current Month"], horizontal=True, key="chart_range")
+    chart_range = st.radio("Show:", ["Current Month", "All Time"], horizontal=True, key="chart_range")
 
     df = pd.DataFrame(
         [
